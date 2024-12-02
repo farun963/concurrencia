@@ -37,14 +37,16 @@ class TeacherConsultationSystem:
 
     def professor_attend(self):
         """Simula la atención del profesor"""
-        while not self.simulation_complete.is_set():
+        while True:
             self.student_ready.acquire()
-            if self.simulation_complete.is_set():
-                break
 
+            # Finalizar si la simulación completó y se colocó un marcador en la cola
             with self.queue_mutex:
                 if not self.consultation_queue.empty():
                     student = self.consultation_queue.get()
+                    if student is None:  # Marcador de terminación
+                        break
+
                     logging.info(f"Profesor atiende a estudiante {student.id}")
                     time.sleep(random.uniform(0.3, 0.8))  # Consulta rápida
                     logging.info(f"Consulta con estudiante {student.id} finalizada")
@@ -74,8 +76,12 @@ def main():
 
     simulate_students(consultation_system, num_students)
 
+    # Esperar unos segundos y terminar la simulación
     time.sleep(5)
-    consultation_system.simulation_complete.set()
+    consultation_system.consultation_queue.put(None)  # Marcador de terminación
+    consultation_system.student_ready.release()  # Desbloquear al profesor
+
+
     professor_thread.join()
 
     logging.info("Simulación de consultas finalizada")
