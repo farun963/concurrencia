@@ -77,7 +77,7 @@ def main():
     simulate_students(consultation_system, num_students)
 
     # Esperar unos segundos y terminar la simulación
-    time.sleep(5)
+    time.sleep(10)
     consultation_system.consultation_queue.put(None)  # Marcador de terminación
     consultation_system.student_ready.release()  # Desbloquear al profesor
 
